@@ -1,4 +1,7 @@
 /.idea/
+/build/
+/dist/
+/django_dcore.egg-info/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

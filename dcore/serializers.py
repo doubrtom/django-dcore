@@ -30,7 +30,7 @@ else:
 
             serializer = self.Meta.subtypes.get(type(instance))
             if serializer:
-                return serializer(instance).data
+                return serializer(instance, context=self.context).data
 
             raise ValueError(
                 'Unknown "{}" subclass of "{}" class, check your definition of Meta.subtypes '
@@ -121,6 +121,10 @@ else:
 
             if not dynamic_field_names and not exclude_field_names:
                 return
+
+            # If there is no dynamic_fields use defined fields in serializer.
+            if not dynamic_field_names:
+                dynamic_field_names = set(self.fields)
 
             field_names = (dynamic_field_names | extra_field_names) - exclude_field_names
             drop_field_names = set(self.fields) - field_names

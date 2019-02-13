@@ -53,3 +53,14 @@ def normalize_str(text: str) -> str:
     text = re.sub(r'\s+', '', text)
     text = text.lower()
     return remove_accent(text)
+
+
+def update_instance(instance, data: dict, properties=None):
+    """Update instance properties by data from dict.
+
+    Optionally update only properties noted in properties list.
+    """
+    for k, v in data.items():
+        if properties and k not in properties:
+            continue
+        setattr(instance, k, v)

@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from django import template
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
 register = template.Library()
 
@@ -73,3 +74,10 @@ def url_replace(context, **kwargs):
     query = context['request'].GET.dict()
     query.update(kwargs)
     return urlencode(query)
+
+
+@register.simple_tag(takes_context=False)
+def trans_format(trans_key, **kwargs):
+    """Trans text and call python str format on result."""
+    translated: str = _(trans_key)
+    return translated.format(**kwargs)

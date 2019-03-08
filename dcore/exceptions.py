@@ -16,3 +16,8 @@ class MissingArgumentException(Exception):
 class LogicException(Exception):
     """Throw it, when program should never reach throwing statement, i.e. logic error in program."""
     pass
+
+
+class DependencyException(Exception):
+    """Throw it, when missing optional dependency."""
+    pass

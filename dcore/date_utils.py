@@ -16,3 +16,13 @@ def get_age(date_instance: date) -> tuple:
     now_date = datetime.now().date()
     age_diff = relativedelta(now_date, date_instance)
     return age_diff.years, age_diff.months, age_diff.days
+
+
+def date_diff(date_from: date, date_to: date) -> tuple:
+    """Return difference between two days.
+
+    Returns:
+        tuple: Difference in format of tuple (years, moths, days)
+    """
+    age_diff = relativedelta(date_to, date_from)
+    return age_diff.years, age_diff.months, age_diff.days

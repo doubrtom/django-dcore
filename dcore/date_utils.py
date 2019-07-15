@@ -1,5 +1,10 @@
+from decimal import Decimal
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+
+
+DAYS_IN_YEAR = Decimal('365.242199')
+MONTHS_IN_YEAR = Decimal(12)
 
 
 def parse_date(date_string: str) -> date:
@@ -26,3 +31,11 @@ def date_diff(date_from: date, date_to: date) -> tuple:
     """
     age_diff = relativedelta(date_to, date_from)
     return age_diff.years, age_diff.months, age_diff.days
+
+
+def days_months_years_to_years(days: int, months: int, years: int) -> Decimal:
+    """Return age (days + months + years) converted to decimal number representing years.
+
+    For number of days/months in years see DAYS_IN_YEAR and MONTHS_IN_YEAR constants in this module.
+    """
+    return (Decimal(days) / DAYS_IN_YEAR) + (Decimal(months) / MONTHS_IN_YEAR) + Decimal(years)

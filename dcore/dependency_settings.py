@@ -10,7 +10,10 @@ FRIENDLY_ERRORS = {
         'ModelChoiceField': {
             'required': 2004,
             'null': 2024,
-            'invalid_choice': 2081
+            'invalid_choice': 2081,
         },
+    },
+    'NON_FIELD_ERRORS': {
+        'already_copied': 1501,
     }
 }

@@ -14,7 +14,7 @@ requires = [
 
 setup(
     name='django-dcore',
-    version='0.15',
+    version='0.16',
     packages=find_packages(),
     include_package_data=True,
     license='BSD License',

@@ -1,4 +1,5 @@
 import re
+from collections.abc import Iterable, Mapping
 import unicodedata
 from typing import Sequence
 
@@ -64,3 +65,16 @@ def update_instance(instance, data: dict, properties=None):
         if properties and k not in properties:
             continue
         setattr(instance, k, v)
+
+
+def is_drf_friendly_errors_dict(val) -> bool:
+    """Check if val is in format drf-friendly-errors."""
+    return (
+        isinstance(val, Mapping)
+        and val.get('code', None) is not None
+        and isinstance(val.get('code'), int)
+        and val.get('message', None) is not None
+        and isinstance(val.get('message'), str)
+        and val.get('errors', None) is not None
+        and isinstance(val.get('errors'), Iterable)
+    )

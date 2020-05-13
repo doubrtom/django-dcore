@@ -14,7 +14,7 @@ requires = [
 
 setup(
     name='django-dcore',
-    version='0.18',
+    version='0.19',
     packages=find_packages(),
     include_package_data=True,
     license='BSD License',
@@ -23,7 +23,7 @@ setup(
     url='https://github.com/doubrtom/django-dcore',
     author='Tomas Doubravsky',
     author_email='doubravskytomas@gmail.com',
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=requires,
     classifiers=[
         'Environment :: Web Environment',
@@ -32,7 +32,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],

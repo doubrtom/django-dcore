@@ -74,7 +74,9 @@ else:
 
         def get_dynamic_field_names(self, request) -> Set:
             """Return set of wanted fields defined by query param 'fields' or view field 'default_fields'."""
-            includes_value = request.query_params.get(self.dynamic_fields_include_key)
+            includes_value = None
+            if request:
+                includes_value = request.query_params.get(self.dynamic_fields_include_key, None)
 
             field_groups = getattr(self.Meta, 'field_groups', {})
             field_groups[self.dynamic_fields_all_group_name] = self.Meta.fields
@@ -82,7 +84,9 @@ else:
             if includes_value in field_groups:
                 include_field_names = set(field_groups[includes_value])
             else:
-                includes = request.query_params.getlist(self.dynamic_fields_include_key)
+                includes = []
+                if request:
+                    includes = request.query_params.getlist(self.dynamic_fields_include_key, [])
                 include_field_names = {
                     name for names in includes for name in names.split(self.dynamic_fields_separator) if name
                 }
@@ -94,7 +98,9 @@ else:
 
         def get_exclude_field_names(self, request):
             """Return set of unwanted fields defined by query param 'exclude_fields'."""
-            excludes = request.query_params.getlist(self.dynamic_fields_exclude_key)
+            excludes = []
+            if request:
+                excludes = request.query_params.getlist(self.dynamic_fields_exclude_key, [])
             return {name for names in excludes for name in names.split(self.dynamic_fields_separator) if name}
 
         def get_extra_field_names(self, request):
@@ -102,22 +108,39 @@ else:
 
             Extra fields are fields NOT returned by server for query without extra arguments (default set of fields).
             """
-            extras = request.query_params.getlist(self.dynamic_fields_extra_key)
+            extras = []
+            if request:
+                extras = request.query_params.getlist(self.dynamic_fields_extra_key, [])
             return {
                 name for names in extras for name in names.split(self.dynamic_fields_separator) if name
             }
 
+        @property
+        def _readable_fields(self):
+            if self.show_origin_fields:
+                yield from super()._readable_fields
+            else:
+                for field in self.new_fields.values():
+                    if not field.write_only:
+                        yield field
+
+        def to_representation(self, instance):
+            self.show_origin_fields = False
+            data = super().to_representation(instance)
+            self.show_origin_fields = True
+            return data
+
         def __init__(self, *args, **kwargs):
+            extra_fields = kwargs.pop('extra_fields', None)
             super().__init__(*args, **kwargs)
 
-            request: Request = kwargs.get('context', {}).get('request')
-
-            if not request or request.method != 'GET':
-                return
-
+            request: Request = kwargs.get('context', {}).get('request', None)
             dynamic_field_names = self.get_dynamic_field_names(request)
             exclude_field_names = self.get_exclude_field_names(request)
             extra_field_names = self.get_extra_field_names(request)
+
+            if extra_fields:
+                extra_field_names = extra_field_names | set(extra_fields)
 
             if not dynamic_field_names and not exclude_field_names:
                 return
@@ -129,5 +152,7 @@ else:
             field_names = (dynamic_field_names | extra_field_names) - exclude_field_names
             drop_field_names = set(self.fields) - field_names
 
+            self.show_origin_fields = True
+            self.new_fields = {**self.fields}
             for field_name in drop_field_names:
-                self.fields.pop(field_name)
+                self.new_fields.pop(field_name)

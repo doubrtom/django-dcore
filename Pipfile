@@ -9,6 +9,9 @@ drf-friendly-errors = "*"
 python-dateutil = "*"
 
 [dev-packages]
+wheel = "*"
+setuptools = "*"
+twine = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"

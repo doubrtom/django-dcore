@@ -134,6 +134,9 @@ else:
             extra_fields = kwargs.pop('extra_fields', None)
             super().__init__(*args, **kwargs)
 
+            self.show_origin_fields = True
+            self.new_fields = {**self.fields}
+
             request: Request = kwargs.get('context', {}).get('request', None)
             dynamic_field_names = self.get_dynamic_field_names(request)
             exclude_field_names = self.get_exclude_field_names(request)
@@ -152,7 +155,5 @@ else:
             field_names = (dynamic_field_names | extra_field_names) - exclude_field_names
             drop_field_names = set(self.fields) - field_names
 
-            self.show_origin_fields = True
-            self.new_fields = {**self.fields}
             for field_name in drop_field_names:
                 self.new_fields.pop(field_name)

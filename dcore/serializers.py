@@ -1,10 +1,12 @@
 from typing import Set
+from collections import abc
 
 
 # Define InheritanceModelSerializer only if there is rest_framework (djangorestframework) package:
 try:
     from rest_framework import serializers
     from rest_framework.request import Request
+    from rest_framework.settings import api_settings
 except ImportError:
     pass  # Nothing to do, do not define InheritanceModelSerializer
 else:
@@ -22,7 +24,41 @@ else:
                 class Meta:
                     model = Animal
                     subtypes = {Dog: DogSerializer, Cat: CatSerializer}
+                    subtypes_mapping = {'dog': DogSerializer, 'cat': CatSerializer}
+                    subtype_keyword = 'animal_type'
+
+            Incoming data: {"name": "kitty", "animal_type": "cat"}
         """
+
+        def get_subclass(self, data=None):
+            """Return instance of sub-serializer."""
+            if data is None:
+                data = self.initial_data
+
+            if not isinstance(data, abc.Mapping):
+                message = self.error_messages['invalid'].format(
+                    datatype=type(data).__name__
+                )
+                raise serializers.ValidationError({
+                    api_settings.NON_FIELD_ERRORS_KEY: [message]
+                }, code='invalid')
+
+            sub_type = data.get(self.Meta.subtype_keyword, None)
+            if sub_type is None or not isinstance(sub_type, str):
+                raise serializers.ValidationError({
+                    api_settings.NON_FIELD_ERRORS_KEY: [
+                        f'Missing inheritance type field: "{self.Meta.subtype_keyword}".'
+                    ]
+                }, code='invalid')
+
+            serializer_class = self.Meta.subtypes_mapping.get(sub_type, None)
+            if serializer_class is None:
+                err_msg = f'Missing subtype class for keyword: "{self.Meta.subtype_keyword}".'
+                raise serializers.ValidationError({
+                    api_settings.NON_FIELD_ERRORS_KEY: [err_msg]
+                }, code='invalid')
+
+            return serializer_class(data=data)
 
         def to_representation(self, instance):
             if not hasattr(self.Meta, 'subtypes'):
@@ -38,6 +74,17 @@ else:
                     type(instance).__name__, self.Meta.model.__name__, self.Meta.model.__name__
                 )
             )
+
+        def to_internal_value(self, data):
+            if not isinstance(data, abc.Mapping):
+                message = self.error_messages['invalid'].format(
+                    datatype=type(data).__name__
+                )
+                raise serializers.ValidationError({
+                    api_settings.NON_FIELD_ERRORS_KEY: [message]
+                }, code='invalid')
+
+            return self.get_subclass(data).to_internal_value(data)
 
 
     class DynamicFieldsSerializerMixin:

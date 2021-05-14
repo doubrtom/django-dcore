@@ -9,6 +9,7 @@ except ImportError:
 else:
     class BatchEndpointMixin:
         batch_create_method = 'create'
+        batch_allow_empty_items = True
 
         @action(methods=['put', 'post', 'patch'], detail=False)
         def batch(self, request: Request):
@@ -44,7 +45,7 @@ else:
             if not isinstance(items, list):
                 return Response('Invalid data, "items" field has to be list.', status=http_status.HTTP_400_BAD_REQUEST)
 
-            if len(items) == 0:
+            if len(items) == 0 and not self.batch_allow_empty_items:
                 return Response('Invalid data, "items" list is empty.', status=http_status.HTTP_400_BAD_REQUEST)
 
             # Validate all:

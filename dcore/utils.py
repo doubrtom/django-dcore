@@ -1,7 +1,8 @@
 import re
+import uuid
 from collections.abc import Iterable, Mapping
 import unicodedata
-from typing import Sequence, Union
+from typing import Sequence, Union, Callable, Any, Optional
 
 from django.utils.translation import gettext as _
 
@@ -74,6 +75,44 @@ def is_integer_value(val: Union[int, str]) -> bool:
         return True
     except ValueError:
         return False
+
+
+def is_uuid_string(val: Any) -> bool:
+    """Check if value is string and valid UUID value."""
+    if not isinstance(val, str):
+        return False
+    try:
+        uuid.UUID(val)
+        return True
+    except ValueError:
+        return False
+
+
+def get_value_with_type(
+    data: dict,
+    key: str,
+    converter_func: Optional[Callable] = None,
+    default: Any = None,
+    default_on_error: bool = True
+):
+    """Try to load value by key from dict and convert it with converter_func.
+
+    Returns
+    -------
+    Any
+        If value found in dict by key, it returns it, optionally converted by converter_func if passed.
+        If value not found, it returns default.
+        If converter function raise error and default_on_error is True, it returns default.
+    """
+    value = data.get(key, default)
+    if key in data and converter_func is not None:
+        try:
+            value = converter_func(value)
+        except Exception as e:
+            if default_on_error:
+                return default
+            raise e
+    return value
 
 
 def is_drf_friendly_errors_dict(val) -> bool:

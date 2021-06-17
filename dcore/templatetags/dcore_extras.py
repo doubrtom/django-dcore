@@ -81,3 +81,9 @@ def trans_format(trans_key, **kwargs):
     """Trans text and call python str format on result."""
     translated: str = _(trans_key)
     return translated.format(**kwargs)
+
+
+@register.simple_tag
+def trans_concat(*args):
+    """Concat all parts of tag and translate it."""
+    return _(''.join(args))

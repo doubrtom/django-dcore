@@ -1,5 +1,5 @@
-from typing import Union, Collection
 import json
+from typing import Collection, Iterable, Union
 
 
 class DoNotAssert:
@@ -101,3 +101,65 @@ def assert_drf_friendly_errors(
             expected_error.get('field', do_not_assert),
             expected_error.get('message', do_not_assert)
         )
+
+
+# Define pytest-factoryboy utils only if there is pytest-factoryboy (pytest-factoryboy) package:
+try:
+    from factory import Factory
+    from factory.base import StubObject
+except ImportError:
+    pass  # Nothing to do, do not define InheritanceModelSerializer
+else:
+
+    class DictFactory:
+        """Convert other factory output into dict."""
+
+        def __init__(self, factory: Factory):
+            self.factory = factory
+
+        def create(self, **kwargs):
+            stub = self.factory.stub(**kwargs)
+            stub_dict = self.__convert_dict_from_stub(stub)
+            return stub_dict
+
+        def create_batch(self, size: int, **kwargs):
+            stubs = self.factory.stub_batch(size, **kwargs)
+            stub_dict = [self.__convert_dict_from_stub(stub) for stub in stubs]
+            return stub_dict
+
+        def __is_stub_of_list(self, stub: StubObject) -> bool:
+            try:
+                return all(k.isdigit() for k in stub.__dict__.keys())
+            except AttributeError:
+                return False
+
+        def __convert_dict_from_stub(self, field):
+            if isinstance(field, StubObject):
+                if self.__is_stub_of_list(field):
+                    return [self.__convert_dict_from_stub(v) for v in field.__dict__.values()]
+                return {k: self.__convert_dict_from_stub(v) for k, v in field.__dict__.items()}
+            if isinstance(field, Iterable) and all(isinstance(x, StubObject) for x in field):
+                return [self.__convert_dict_from_stub(v) for v in field]
+            else:
+                return field
+
+
+    def create_post_generation_list(factory, size: int, field_name, created_object, create, extracted, **kwargs):
+        """Universal function to add items from factory into created_object. Use this in post_generation hook.
+
+        This method support post_generation adding for object, stub or dict factory output format.
+        For generating dict from Factory see DictFactory in this module.
+        """
+        if create:
+            if not extracted:
+                items = factory.create_batch(size, **kwargs)
+            else:
+                items = extracted
+            for item in items:
+                getattr(created_object, field_name).add(item)
+        else:
+            if not extracted:
+                items = factory.stub_batch(size, **kwargs)
+            else:
+                items = extracted
+            setattr(created_object, field_name, items)

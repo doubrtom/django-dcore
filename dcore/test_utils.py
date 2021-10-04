@@ -151,14 +151,14 @@ else:
         For generating dict from Factory see DictFactory in this module.
         """
         if create:
-            if not extracted:
+            if extracted is None:
                 items = factory.create_batch(size, **kwargs)
             else:
                 items = extracted
             for item in items:
                 getattr(created_object, field_name).add(item)
         else:
-            if not extracted:
+            if extracted is None:
                 items = factory.stub_batch(size, **kwargs)
             else:
                 items = extracted

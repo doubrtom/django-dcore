@@ -1,7 +1,43 @@
-from typing import Iterable
+from typing import Iterable, List
 
 from django.utils.translation import gettext_lazy
 from rest_framework_friendly_errors import settings
+
+
+def validation_failed_items(
+    items: Iterable[List]
+):
+    """Generate items for errors field in format of DRF-friendly-errors.
+
+    Parameters
+    ----------
+    items
+        Items to generate errors.
+        len(item) == 3, generate dict in format {"code": i[0], "field": i[1], "message": i[2]}
+        len(item) == 4, generate dict in format:
+            {"code": i[0], "field": i[1], "message": i[2], "errors": validation_failed_items(i[3])}
+        len(item) == 0, generate empty dict, i.e. {}
+
+
+    """
+    formatted_errors = []
+    for item in items:
+        if len(item) == 0:
+            formatted_errors.append({})
+        if len(item) == 3:
+            formatted_errors.append({
+                'code': item[0],
+                'field': item[1],
+                'message': item[2],
+            })
+        if len(item) == 4:
+            formatted_errors.append({
+                'code': item[0],
+                'field': item[1],
+                'message': item[2],
+                'errors': validation_failed_items(item[3]),
+            })
+        return formatted_errors
 
 
 def validation_failed_dict(
@@ -20,9 +56,7 @@ def validation_failed_dict(
     return {
         'code': dict_code,
         'message': dict_message,
-        'errors': [
-            {'code': i[0], 'field': i[1], 'message': i[2]} for i in items
-        ]
+        'errors': validation_failed_items(items),
     }
 
 

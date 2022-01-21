@@ -8,7 +8,8 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 requires = [
-    'django>=2.0',
+    'django>=3.1.0',
+    'djangorestframework>=3.10.0',
     'python-dateutil>=2.8.0',
 ]
 

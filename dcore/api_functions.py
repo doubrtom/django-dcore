@@ -37,7 +37,7 @@ def bulk_update(
         except (ObjectDoesNotExist, ValidationError):
             any_error = True
             break
-        serializer = serializer_class(item, data=item_data, partial=True)
+        serializer = serializer_class(item, data=item_data, partial=True, context={'request': request})
         if not serializer.is_valid():
             any_error = True
             break

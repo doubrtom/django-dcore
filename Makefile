@@ -3,7 +3,8 @@ clean:
 	rm -rf build/*
 
 upload:
-	twine upload dist/*
+	pipenv run twine upload dist/*
 
 create:
-	python setup.py sdist bdist_wheel
+	pipenv run python setup.py sdist bdist_wheel
+
